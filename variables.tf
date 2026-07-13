@@ -26,6 +26,16 @@ variable "environment" {
   #default = "saas-demo"
 }
 
+variable "bucket_name" {
+  type    = string
+  #default = "saas-demo-496915"
+}
+
+variable "path" {
+  type    = string
+  #default = "saas-demo-496915"
+}
+
 variable "retries" {
   type    = number
   description = "JSON Input"
