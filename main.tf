@@ -9,15 +9,16 @@ data "google_client_config" "current" {}
 # 1. Read the content of the object from the GCS bucket
 
 data "google_storage_bucket_object_content" "gcs_file" {
-  name   = "path/to/your/object.txt" # The path inside the bucket
-  bucket = "your-gcs-bucket-name"
+  project = var.gcp_project_id
+  name   = "template/temp.json" # The path inside the bucket
+  bucket = var.bucket_name
 }
 
 # 2. Save that content to a local file on the disk
 
 resource "local_file" "downloaded_file" {
   content  = data.google_storage_bucket_object_content.gcs_file.content
-  filename = "${path.module}/downloaded_object.txt" # Destination path
+  filename = var.path #"${path.module}/downloaded_object.txt" # Destination path
 }
 
 # --- RESOURCES ---
