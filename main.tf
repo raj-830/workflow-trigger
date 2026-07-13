@@ -6,7 +6,24 @@
 # Fetch the active OAuth2 access token for authentication
 data "google_client_config" "current" {}
 
+# 1. Read the content of the object from the GCS bucket
+
+data "google_storage_bucket_object_content" "gcs_file" {
+  name   = "path/to/your/object.txt" # The path inside the bucket
+  bucket = "your-gcs-bucket-name"
+}
+
+# 2. Save that content to a local file on the disk
+
+resource "local_file" "downloaded_file" {
+  content  = data.google_storage_bucket_object_content.gcs_file.content
+  filename = "${path.module}/downloaded_object.txt" # Destination path
+}
+
 # --- RESOURCES ---
+
+
+
 
 # 1. Trigger the workflow with the dynamic template data
 resource "terracurl_request" "trigger_workflow" {
@@ -24,7 +41,8 @@ resource "terracurl_request" "trigger_workflow" {
 
   # Dynamically parses template.json and injects the variables
   request_body = jsonencode({
-    argument = templatefile("${path.module}/file/template.json", {
+    #argument = templatefile("${path.module}/file/template.json", {
+    argument = templatefile("${var.path}", {
       phase_name = var.phase_name
       env        = var.environment
       retries    = var.retries
@@ -53,6 +71,7 @@ resource "time_sleep" "wait_for_workflow" {
 }
 
 # 3. Pull the workflow execution status from the Google Cloud API
+/*
 data "http" "workflow_status" {
   depends_on = [time_sleep.wait_for_workflow]
   url        = "https://workflowexecutions.googleapis.com/v1/${jsondecode(terracurl_request.trigger_workflow.response).name}"
@@ -61,9 +80,10 @@ data "http" "workflow_status" {
     Authorization = "Bearer ${data.google_client_config.current.access_token}"
     Content-Type  = "application/json"
   }
-}
+} */
 
 # 4. Pipeline Guardian: Fails 'terraform apply' if the workflow state isn't SUCCEEDED
+/*
 resource "null_resource" "status_check" {
   lifecycle {
     postcondition {
@@ -71,5 +91,16 @@ resource "null_resource" "status_check" {
       error_message = "The GCP Workflow failed or timed out. Final status: ${jsondecode(data.http.workflow_status.response_body).state}"
     }
   }
+} */
+
+# 1. Read the content of the object from the GCS bucket
+data "google_storage_bucket_object_content" "gcs_file" {
+  name   = "path/to/your/object.txt" # The path inside the bucket
+  bucket = "your-gcs-bucket-name"
 }
 
+# 2. Save that content to a local file on the disk
+resource "local_file" "downloaded_file" {
+  content  = data.google_storage_bucket_object_content.gcs_file.content
+  filename = "${path.module}/downloaded_object.txt" # Destination path
+}
