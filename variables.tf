@@ -1,6 +1,6 @@
 variable "gcp_project_id" {
   type    = string
-  default = "bubbly-pillar-480718-h2"
+
 }
 
 variable "gcp_region" {
@@ -8,14 +8,14 @@ variable "gcp_region" {
   default = "us-central1"
 }
 
-variable "service_account" {
-  type    = string
-  default = "infra-manager-sa@bubbly-pillar-480718-h2.iam.gserviceaccount.com"
-}
+# variable "service_account" {
+#   type    = string
+#   default = "infra-manager-sa@bubbly-pillar-480718-h2.iam.gserviceaccount.com"
+# }
 
 variable "workflow_name" {
   type    = string
-  default = "wf-3"
+  #default = "wf-3"
 }
 
 variable "phase_name" {
@@ -27,23 +27,23 @@ variable "phase_name" {
 variable "environment" {
   type        = string
   description = "prod"
-  default = "prod13"
+  #default = "prod13"
 }
 
-variable "bucket_name" {
-  type    = string
-  default = "workflow-template-830"
-}
+# variable "bucket_name" {
+#   type    = string
+#   default = "workflow-template-830"
+# }
 
-variable "path" {
-  type    = string
-  default = "./temp.json"
-}
+# variable "path" {
+#   type    = string
+#   default = "./temp.json"
+# }
 
 variable "retries" {
   type        = number
   description = "JSON Input"
-  default = "13"
+  #default = "13"
 }
 
 #--------------------------------------------------
@@ -53,11 +53,7 @@ variable "retries" {
 #   DEPLOYMENT METADATA VARIABLES
 # ==========================================
 
-variable "project_id" {
-  type        = string
-  description = "The target Google Cloud Project ID where the resources reside."
-  default = "bubbly-pillar-480718-h2"
-}
+
 
 variable "region" {
   type        = string
@@ -68,13 +64,13 @@ variable "region" {
 variable "dataplane_id" {
   type        = string
   description = "The unique organization instance or data plane identifier used for naming resources."
-  default = "dp-1"
+  #default = "dp-1"
 }
 
 variable "gke_cluster_name" {
   type        = string
   description = "The name of the destination GKE cluster where components are running."
-  default = "ckg-1"
+  #default = "ckg-1"
 }
 
 

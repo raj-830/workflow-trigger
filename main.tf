@@ -6,11 +6,11 @@ locals {
       snapshot_handler      = "v0.0.0"
     }
     cluster_identifier     = var.gke_cluster_name
-    image_repository       = "${var.region}-docker.pkg.dev/${var.project_id}/org-${var.dataplane_id}-images"
+    image_repository       = "${var.gcp_region}-docker.pkg.dev/${var.gcp_project_id}/org-${var.dataplane_id}-images"
     instance_id            = var.dataplane_id
     instance_long_id       = var.dataplane_id
     zones_list             = ["alpha", "beta"]
-    status_check_url       = "https://${var.region}-${var.project_id}.cloudfunctions.net/org-${var.dataplane_id}-fn-check-status"
+    status_check_url       = "https://${var.gcp_region}-${var.gcp_project_id}.cloudfunctions.net/org-${var.dataplane_id}-fn-check-status"
     k8s_release            = "0.00.0-gke.0000000"
     image_versions = {
       tls_handler_version           = "v0.0.0"
@@ -38,17 +38,17 @@ locals {
       foundation_image_version      = "00000000-base0.0"
       settings_updater_version      = "rel-0.0.0-00000000-000000"
     }
-    setup_service_url      = "https://${var.region}-${var.project_id}.cloudfunctions.net/org-${var.dataplane_id}-fn-setup"
-    kms_resource           = "projects/${var.project_id}/locations/${var.region}/keyRings/ring-${var.region}/cryptoKeys/key_name"
-    gateway_service_url    = "https://${var.region}-${var.project_id}.cloudfunctions.net/org-${var.dataplane_id}-fn-gateway"
+    setup_service_url      = "https://${var.gcp_region}-${var.gcp_project_id}.cloudfunctions.net/org-${var.dataplane_id}-fn-setup"
+    kms_resource           = "projects/${var.gcp_project_id}/locations/${var.gcp_region}/keyRings/ring-${var.gcp_region}/cryptoKeys/key_name"
+    gateway_service_url    = "https://${var.gcp_region}-${var.gcp_project_id}.cloudfunctions.net/org-${var.dataplane_id}-fn-gateway"
     resource_tags = {
-      owner_id        = var.project_id
+      owner_id        = var.gcp_project_id
       instance_id     = var.dataplane_id
-      location        = var.region
+      location        = var.gcp_region
     }
     availability_zones = [
-      "${var.region}-alpha",
-      "${var.region}-beta"
+      "${var.gcp_region}-alpha",
+      "${var.gcp_region}-beta"
     ]
     endpoint_subnets = {
       "0.0.0.0/00" = ""
@@ -68,22 +68,22 @@ locals {
       "0.0.0.0/00" = ""
       "0.0.0.0/00" = ""
     }
-    gcp_project            = var.project_id
-    message_queue          = "projects/${var.project_id}/topics/org-${var.dataplane_id}-queue-messages"
-    cloud_region           = var.region
-    notification_url       = "https://${var.region}-${var.project_id}.cloudfunctions.net/org-${var.dataplane_id}-fn-notify"
+    gcp_project            = var.gcp_project_id
+    message_queue          = "projects/${var.gcp_project_id}/topics/org-${var.dataplane_id}-queue-messages"
+    cloud_region           = var.gcp_region
+    notification_url       = "https://${var.gcp_region}-${var.gcp_project_id}.cloudfunctions.net/org-${var.dataplane_id}-fn-notify"
     service_identities = {
-      main_controller_identity  = "org-${var.dataplane_id}-controller@${var.project_id}.iam.gserviceaccount.com"
-      worker_node_identity      = "org-${var.dataplane_id}-worker@${var.project_id}.iam.gserviceaccount.com"
-      operator_identity         = "org-${var.dataplane_id}-ops@${var.project_id}.iam.gserviceaccount.com"
-      app_identity              = "org-${var.dataplane_id}-app@${var.project_id}.iam.gserviceaccount.com"
+      main_controller_identity  = "org-${var.dataplane_id}-controller@${var.gcp_project_id}.iam.gserviceaccount.com"
+      worker_node_identity      = "org-${var.dataplane_id}-worker@${var.gcp_project_id}.iam.gserviceaccount.com"
+      operator_identity         = "org-${var.dataplane_id}-ops@${var.gcp_project_id}.iam.gserviceaccount.com"
+      app_identity              = "org-${var.dataplane_id}-app@${var.gcp_project_id}.iam.gserviceaccount.com"
     }
     resource_metadata = {
       owner_identifier      = var.dataplane_id
       resource_name         = "crn:v0:cloud"
       unique_id             = var.dataplane_id
       offering_type         = "saas-platform"
-      geographic_location   = var.region
+      geographic_location   = var.gcp_region
       infrastructure        = "gcp"
     }
     service_category = "saas-platform"
@@ -96,7 +96,7 @@ locals {
 # Trigger the workflow with the dynamic template data
 resource "terracurl_request" "trigger_workflow" {
   name   = "trigger_phase2_execution"
-  url    = "https://workflowexecutions.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/workflows/${var.workflow_name}/executions"
+  url    = "https://workflowexecutions.googleapis.com/v1/projects/${var.gcp_project_id}/locations/${var.gcp_region}/workflows/${var.workflow_name}/executions"
   method = "POST"
   
   headers = {
