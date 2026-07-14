@@ -7,7 +7,7 @@ locals {
     }
     cluster_identifier     = var.gke_cluster_name
     image_repository       = "${var.gcp_region}-docker.pkg.dev/${var.gcp_project_id}/org-${var.dataplane_id}-images"
-    instance_id            = var.dataplane_id
+    instance_id            = var.app_name
     instance_long_id       = var.dataplane_id
     zones_list             = ["alpha", "beta"]
     status_check_url       = "https://${var.gcp_region}-${var.gcp_project_id}.cloudfunctions.net/org-${var.dataplane_id}-fn-check-status"
