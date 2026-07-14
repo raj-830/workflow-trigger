@@ -1,0 +1,60 @@
+
+
+# --- DATA SOURCES ---
+
+# 1. Fetch the token from the active ALM provider context cleanly
+data "google_client_config" "current" {}
+
+# 2. Read the content of the object from the GCS bucket
+data "google_storage_bucket_object_content" "gcs_file" {
+  name   = "template/temp.json"
+  bucket = trimspace(var.bucket_name) # trimspace strips accidental whitespace entry bugs
+}
+
+# --- RESOURCES ---
+
+# 1. Save that content to a local file on the disk
+resource "local_file" "downloaded_file" {
+  content  = data.google_storage_bucket_object_content.gcs_file.content
+  filename = var.path 
+}
+
+# 2. Trigger the workflow with the dynamic template data
+resource "terracurl_request" "trigger_workflow" {
+  depends_on = [local_file.downloaded_file, data.google_storage_bucket_object_content.gcs_file]
+  name       = "trigger_phase2_execution"
+  url        = "https://workflowexecutions.googleapis.com/v1/projects/${var.gcp_project_id}/locations/${var.gcp_region}/workflows/${var.workflow_name}/executions"
+  method     = "POST"
+  
+  headers = {
+    # Uses the cleaner client config token straight from the active session
+    Authorization = "Bearer ${data.google_client_config.current.access_token}"
+    Content-Type  = "application/json"
+  }
+
+  response_codes = [200, 201]
+
+  request_body = jsonencode({
+    argument = templatefile("${var.path}", {
+      phase_name = var.phase_name
+      env        = var.environment
+      retries    = var.retries
+    })
+  })
+
+  destroy_url    = "https://httpbin.org/status/200"
+  destroy_method = "GET"
+  
+  lifecycle {
+    replace_triggered_by = [terraform_data.always_run]
+  }
+}
+
+resource "terraform_data" "always_run" {
+  input = timestamp()
+}
+
+resource "time_sleep" "wait_for_workflow" {
+  depends_on      = [terracurl_request.trigger_workflow]
+  create_duration = "20s" 
+}

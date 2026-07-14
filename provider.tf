@@ -24,9 +24,12 @@ terraform {
   }
 }
 
-# --- PROVIDERS & DATA ---
+# --- PROVIDERS ---
 provider "google" {
-  project = var.gcp_project_id
-  region  = var.gcp_region
+  # project = var.gcp_project_id
+  # region  = var.gcp_region
 }
+
 provider "local" {}
+
+data "google_client_config" "current" {}
