@@ -78,10 +78,10 @@ variable "gke_cluster_name" {
 # #   WORKFLOW EXECUTION VARIABLES
 # # ==========================================
 
-# variable "workflow_name" {
-#   type        = string
-#   description = "The name of the target Google Cloud Workflow to execute."
-# }
+ variable "app_name" {
+   type        = string
+   description = "The name of the target Google Cloud Workflow to execute."
+ }
 
 # variable "phase_name" {
 #   type        = string
