@@ -43,7 +43,7 @@ variable "environment" {
 variable "retries" {
   type        = number
   description = "JSON Input"
-  default = "17"
+  default = 17
 }
 
 #--------------------------------------------------

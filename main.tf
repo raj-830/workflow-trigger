@@ -108,7 +108,7 @@ resource "terraform_data" "trigger_workflow_exec" {
               phase_name = var.phase_name
               env        = var.environment
               retries    = var.retries
-            }
+            }va 
           ))
         })}' \
         "https://workflowexecutions.googleapis.com/v1/projects/${var.gcp_project_id}/locations/${var.gcp_region}/workflows/${var.workflow_name}/executions"
