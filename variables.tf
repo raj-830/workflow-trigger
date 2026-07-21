@@ -8,11 +8,6 @@ variable "gcp_region" {
   default = "us-central1"
 }
 
-# variable "service_account" {
-#   type    = string
-#   default = "infra-manager-sa@bubbly-pillar-480718-h2.iam.gserviceaccount.com"
-# }
-
 variable "workflow_name" {
   type    = string
   default = "wf-3"
@@ -30,15 +25,7 @@ variable "environment" {
   default = "prod17"
 }
 
-# variable "bucket_name" {
-#   type    = string
-#   default = "workflow-template-830"
-# }
 
-# variable "path" {
-#   type    = string
-#   default = "./temp.json"
-# }
 
 variable "retries" {
   type        = number
@@ -53,13 +40,6 @@ variable "retries" {
 #   DEPLOYMENT METADATA VARIABLES
 # ==========================================
 
-
-
-variable "region" {
-  type        = string
-  description = "The GCP region where data plane microservices and functions are deployed."
-  default = "us-central1"
-}
 
 variable "dataplane_id" {
   type        = string
@@ -84,20 +64,3 @@ variable "gke_cluster_name" {
    default = "wf-app-name"
  }
 
-# variable "phase_name" {
-#   type        = string
-#   description = "The execution phase flag passed as a runtime parameter to the workflow."
-#   default = "july14"
-# }
-
-# variable "environment" {
-#   type        = string
-#   description = "The environment classification context (e.g., dev, staging, prod)."
-#   default = "dev"
-# }
-
-# variable "retries" {
-#   type        = number
-#   description = "The maximum retry counter assigned to the execution task context."
-#   default     = 3
-# }

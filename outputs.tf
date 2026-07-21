@@ -1,4 +1,4 @@
 output "workflow_execution_id" {
-  description = "Execution trigger status."
-  value       = "Workflow execution triggered via local-exec provisioner."
+  description = "The dynamic execution resource locator created by the Google Cloud Workflows API."
+  value       = jsondecode(data.http.trigger_workflow_exec.response_body).name
 }

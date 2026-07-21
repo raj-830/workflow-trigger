@@ -85,39 +85,42 @@ locals {
 }
 
 # ==============================================================================
-# 4. ZERO-STATE TEARDOWN VIA LOCAL-EXEC (CURL FORMAT)
+# 4. ZERO-STATE WORKFLOW TRIGGER VIA NATIVE HTTP DATA SOURCE
 # ==============================================================================
 
-resource "terraform_data" "trigger_workflow_exec" {
-  
-  # Triggers re-execution on every 'terraform apply'
-  triggers_replace = {
-    always_run = timestamp()
+# Data sources execute during 'terraform apply' but leave ZERO entries in state.
+# During 'terraform destroy', Terraform skips this block completely.
+data "http" "trigger_workflow_exec" {
+  url    = "https://workflowexecutions.googleapis.com/v1/projects/${var.gcp_project_id}/locations/${var.gcp_region}/workflows/${var.workflow_name}/executions"
+  method = "POST"
+
+  request_headers = {
+    # Uses Terraform's natively fetched GCP auth token — no 'gcloud' CLI required!
+    Authorization = "Bearer ${data.google_client_config.current.access_token}"
+    Content-Type  = "application/json"
   }
 
-  provisioner "local-exec" {
-    command = <<EOT
-      TOKEN=$(gcloud auth print-access-token)
-      curl -s -X POST \
-        -H "Authorization: Bearer $TOKEN" \
-        -H "Content-Type: application/json" \
-        -d '${jsonencode({
-          argument = jsonencode(merge(
-            local.workflow_template,
-            {
-              phase_name = var.phase_name
-              env        = var.environment
-              retries    = var.retries
-            }va 
-          ))
-        })}' \
-        "https://workflowexecutions.googleapis.com/v1/projects/${var.gcp_project_id}/locations/${var.gcp_region}/workflows/${var.workflow_name}/executions"
-    EOT
+  request_body = jsonencode({
+    argument = jsonencode(merge(
+      local.workflow_template,
+      {
+        phase_name = var.phase_name
+        env        = var.environment
+        retries    = var.retries
+      }
+    ))
+  })
+
+  lifecycle {
+    postcondition {
+      condition     = contains([200, 201], self.status_code)
+      error_message = "Workflow execution request failed with HTTP status code: ${self.status_code}"
+    }
   }
 }
 
 # Assures asynchronous stability processing buffer before dependent operations resume
-resource "time_sleep" "wait_for_workflow" {
-  depends_on      = [terraform_data.trigger_workflow_exec]
+resource "time_sleep" "wait_for_workflow" {    
+  depends_on      = [data.http.trigger_workflow_exec]
   create_duration = "20s"
 }
