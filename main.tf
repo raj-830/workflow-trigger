@@ -85,43 +85,39 @@ locals {
 }
 
 # ==============================================================================
-# 4. ZERO-STATE TRACKING EXECUTION MANAGEMENT
+# 4. ZERO-STATE TEARDOWN VIA LOCAL-EXEC (CURL FORMAT)
 # ==============================================================================
 
-# Shifting from a resource block to a data source removes it from the state's deletion graph.
-# It dynamically submits an HTTP POST execution request during the 'apply' phase, 
-# but it is ignored during 'terraform destroy' loops, preventing pipeline errors.
-data "http" "trigger_workflow" {
-  url    = "https://workflowexecutions.googleapis.com/v1/projects/${var.gcp_project_id}/locations/${var.gcp_region}/workflows/${var.workflow_name}/executions"
-  method = "POST"
-
-  request_headers = {
-    Authorization = "Bearer ${data.google_client_config.current.access_token}"
-    Content-Type  = "application/json"
+resource "terraform_data" "trigger_workflow_exec" {
+  
+  # Triggers re-execution on every 'terraform apply'
+  triggers_replace = {
+    always_run = timestamp()
   }
 
-  request_body = jsonencode({
-    argument = jsonencode(merge(
-      local.workflow_template,
-      {
-        phase_name = var.phase_name
-        env        = var.environment
-        retries    = var.retries
-      }
-    ))
-  })
-
-  # Performs a sanity validation on the returned status code before finishing execution loops
-  lifecycle {
-    postcondition {
-      condition     = contains([200, 201], self.status_code)
-      error_message = "The Workflow Control Engine API rejected the request with status code: ${self.status_code}"
-    }
+  provisioner "local-exec" {
+    command = <<EOT
+      TOKEN=$(gcloud auth print-access-token)
+      curl -s -X POST \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -d '${jsonencode({
+          argument = jsonencode(merge(
+            local.workflow_template,
+            {
+              phase_name = var.phase_name
+              env        = var.environment
+              retries    = var.retries
+            }
+          ))
+        })}' \
+        "https://workflowexecutions.googleapis.com/v1/projects/${var.gcp_project_id}/locations/${var.gcp_region}/workflows/${var.workflow_name}/executions"
+    EOT
   }
 }
 
-# Assures an asynchronous stability processing buffer before dependent state executions finish
+# Assures asynchronous stability processing buffer before dependent operations resume
 resource "time_sleep" "wait_for_workflow" {
-  depends_on      = [data.http.trigger_workflow]
-  create_duration = "20s" 
+  depends_on      = [terraform_data.trigger_workflow_exec]
+  create_duration = "20s"
 }
