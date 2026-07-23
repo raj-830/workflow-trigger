@@ -124,3 +124,45 @@ resource "time_sleep" "wait_for_workflow" {
   depends_on      = [data.http.trigger_workflow_exec]
   create_duration = "20s"
 }
+
+# ==============================================================================
+# 5. DESTROY-TIME WORKFLOW TRIGGER (RUNS ONLY ON TERRAFORM DESTROY)
+# ==============================================================================
+
+resource "terraform_data" "trigger_destroy_workflow" {
+  # Forces Terraform to register this resource in state so its destroy hook stays active
+  input = timestamp()
+
+  provisioner "local-exec" {
+    when = destroy
+
+    # Fires an asynchronous POST request to trigger the cleanup/destroy workflow
+    command = <<EOT
+      TOKEN=$(gcloud auth print-access-token)
+      curl -s -X POST \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -d '${jsonencode({
+          argument = jsonencode({
+            action     = "destroy"
+            project_id = self.triggers_replace.project_id
+            region     = self.triggers_replace.region
+          })
+        })}' \
+        "https://workflowexecutions.googleapis.com/v1/projects/${self.triggers_replace.project_id}/locations/${self.triggers_replace.region}/workflows/${self.triggers_replace.workflow_name}/executions"
+    EOT
+  }
+
+  # Stores context parameters inside state so they remain available during destruction
+  triggers_replace = {
+    project_id    = var.gcp_project_id
+    region        = var.gcp_region
+    workflow_name = var.destroy_workflow_name # e.g., "wf-destroy-cleanup"
+  }
+
+  # Passes a fresh access token into the destroy provisioner environment
+  lifecycle {
+    ignore_changes = [input]
+  }
+}
+

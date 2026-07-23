@@ -13,6 +13,12 @@ variable "workflow_name" {
   default = "wf-3"
 }
 
+variable "destroy_workflow_name" {
+  type    = string
+  default = "workflow-destroy"
+}
+
+
 variable "phase_name" {
   type        = string
   description = "JSON Input"
